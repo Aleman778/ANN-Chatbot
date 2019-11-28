@@ -3,7 +3,7 @@ import torch
 import torch.nn  as nn
 import torch.optim as optim
 import torch.nn.functional as F
-
+from torch.utils import data
 
 class Model(nn.Module):
     """The Model is the representataion for the Artificial Neural Network.
@@ -25,45 +25,32 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.linear = nn.Linear(7305, 2)
         self.loss = nn.MSELoss()
-        self.optimizer = optim.SGD(self.parameters)
+        self.optimizer = optim.SGD(self.parameters(), lr=0.05)
         
-    def forward():
-        F.relu(self.linear)
-        
+    def forward(self, *input, **kwargs):
+        F.relu(self.linear(*input))
 
-class Dataset:
-
-    def __init__(inputs, labels, batch_size):
-        """Initializes a dataset containing inputs and labels
-        with batching of specific size"""
-        
-        self.inputs = inputs
-        self.labels = labels
-        self.batch_size = batch_size
-        
 
         
 class TrainingSession:
-
-    def __init__(dataset):
+    """A Training session is data representation for holding
+    the state of current training session e.g. epochs, losses etc.
+    """
+    def __init__(self, train_loader, val_loader):
         self.epoch = 0
-        self.dataset = 0
+        self.train_loader = train_loader
+        self.val_loader = val_loader
         self.losses = []
+        self.val_losses = []
 
+    def next_epoch(self):
+        self.epoch += 1
 
-    def train(num_epochs):
-        self.max_epochs = self.epoch + num_epochs
-        while self.epoch < self.max_epochs:
-            
-        self.curr_epoch++
-        
-
-    def print_status(batch_num, loss):
+    def print_status(self, batch_num, loss):
         print("\rEpoch {} [{}/{}] - Loss: {}".format(
                 self.current_epoch+1, batch_num+1, self.batch_size, loss),
             end='')
         
-    
 
 class Chatbot:
     """The chatbot class has a neural network model object that
@@ -72,42 +59,38 @@ class Chatbot:
 
     def __init__(self, model):
         self.model = model
+        self.to_onehot = nn.Embedding(2, 2) 
+        self.to_onehot.weight.data = torch.eye(2)
     
 
     def train(self, sess):
         """Runs the training for one epoch"""
-        for 
         train_loss = 0
-        for batch_nr, (images, labels) in enumerate(train_loader):
-            labels = to_onehot(labels)
-            images = images.view(-1,784)
-            prediction = network(images)
-            loss = loss_function(prediction, labels)
+        for batch_num, (inputs, labels) in enumerate(sess.train_loader):
+            labels = self.to_onehot(labels)
+            prediction = self.model(inputs)
+            loss = self.model.loss(prediction, labels)
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
             train_loss += loss.item()
-            
+            sess.print_status(batch_num)
             
         train_loss /= len(train_loader)
         losses.append(train_loss)
+        sess.next_epoch()
         
 
 
-    def validate(epoch):
+    def validate(self, sess):
         validation_loss = 0
-        for batch_nr, (images, labels) in enumerate(validation_loader):
+        for batch_num, (inputs, labels) in enumerate(sess.validation_loader):
             labels = to_onehot(labels)
-            images = images.view(-1,784)
-            prediction = network(images)
-            loss = loss_function(prediction, labels)
+            prediction = self.model(inputs)
+            loss = self.model.loss(prediction, labels)
             validation_loss += loss.item()
-            print(
-                '\rEpoch {} [{}/{}] - Validation: {}'.format(
-                    current_epoch+1, batch_nr+1, len(validation_loader), loss
-                ),
-                end=''
-            )
-            validation_loss /= len(validation_loader)
-            validation_losses.append(validation_loss)
+            sess.print_status()
+            
+        validation_loss /= len(validation_loader)
+        validation_losses.append(validation_loss)
         return validation_loss
