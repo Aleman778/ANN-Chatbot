@@ -32,7 +32,7 @@ class AmazonReviews(datasets.VisionDataset):
             raise RuntimeError("Dataset not found. You can download it by setting `download=True`")
 
         data_file = self.training_file if train else self.test_file
-        self.data, self.targets = torch.load(os.path.join(self.processed_folder, data_file))
+        self.data, self.targets, self.vectorizer = torch.load(os.path.join(self.processed_folder, data_file))
         
         
     def __len__(self):
@@ -91,9 +91,9 @@ class AmazonReviews(datasets.VisionDataset):
         test_targets  = torch.from_numpy(np.array(test_targets)).long()
         
         with open(os.path.join(self.processed_folder, self.training_file), 'wb') as f:
-            torch.save((train_tensor, train_targets), f)
+            torch.save((train_tensor, train_targets, self.vectorizer), f)
         with open(os.path.join(self.processed_folder, self.test_file), 'wb') as f:
-            torch.save((test_tensor, test_targets), f)
+            torch.save((test_tensor, test_targets, self.vectorizer), f)
             
         print('Done!')
 
@@ -139,9 +139,14 @@ class TfidfTransform(TfidfVectorizer):
             use_idf=use_idf,
             norm=norm
         )
+        self.fit = True
 
     def __call__(self, data):
-        data = self.word_vectorizer.fit_transform(data)
+        if self.fit:
+            data = self.word_vectorizer.fit_transform(data)
+        else:
+            data = self.word_vectorizer.transform(data)
+        self.fit = False
         return data.todense()
 
 
@@ -151,4 +156,5 @@ if __name__ == "__main__":
     print(len(dataset))
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=10, shuffle=False);
     for batch_num, (data, targets) in enumerate(train_loader):
-        print("batch_num {}:\n\tdata:{}\n\ttargets:{}\n\n".format(batch_num, data, targets));
+        print("batch_num {}:\n\tdata:{}, (len={})\n\ttargets:{}, (len={})\n\n"
+              .format(batch_num, data, len(data[0]), targets, len(targets)));
