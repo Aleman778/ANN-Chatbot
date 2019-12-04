@@ -57,6 +57,7 @@ def chat():
     inputs = ["this product is good",
               "this product is awful",
               "super good",
+              "hate it but love it anyways",
               "this is equal to Keanu Reeves acting"]
     for input in inputs:
         data = train_dataset.vectorizer([input])
@@ -91,7 +92,7 @@ if __name__ == "__main__":
     to_onehot = nn.Embedding(2, 2) 
     to_onehot.weight.data = torch.eye(2)
     to_onehot.to(device)
-    epochs = 100
+    epochs = 500
     current_epoch = 0
     losses = []
     validation_losses = []
