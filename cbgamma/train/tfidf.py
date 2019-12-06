@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device_name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
-    print("Training on", device_name)
+    print("Training on:", device_name)
     
     network = nn.Sequential(
         nn.Linear(5199,2),

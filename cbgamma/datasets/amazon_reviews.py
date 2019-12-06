@@ -19,11 +19,12 @@ class AmazonReviews(datasets.VisionDataset):
 
     resource = "https://drive.google.com/uc?export=download&id=1BvKLnZU3A8d-JSR3o1-KZeKSHaDqlepN"
 
-    def __init__(self, root, train=True, transforms=None, vectorizer=None, download=False):
+    def __init__(self, root, train=True, transforms=None, vectorizer=None, download=False, stopwords=False):
         """Initializes a dataset containing inputs and labels
         with batching of specific size"""
         super(AmazonReviews, self).__init__(root, transforms=transforms)
         self.vectorizer = vectorizer
+        self.stopwords = stopwords
 
         if download:
             self.download()
@@ -55,16 +56,19 @@ class AmazonReviews(datasets.VisionDataset):
         data['Sentence'] = data['Sentence'].replace('((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}', '', regex=True)
         data['Sentence'] = data['Sentence'].replace('[^\w\s]','', regex=True)
         data['Sentence'] = data['Sentence'].replace('\d', '', regex=True)
-        result = pd.DataFrame(columns=columns)
-        for index, row in data.iterrows():
-            word_tokens = word_tokenize(row['Sentence'])
-            filtered_sent = [w for w in word_tokens if not w in stopwords.words('english')]
-            result = result.append({
-                "index": row['index'],
-                "Class": row['Class'],
-                "Sentence": " ".join(filtered_sent[0:])
-            }, ignore_index=True)
-        return result;
+        if self.stopwords:
+            result = pd.DataFrame(columns=columns)
+            for index, row in data.iterrows():
+                word_tokens = word_tokenize(row['Sentence'])
+                filtered_sent = [w for w in word_tokens if not w in stopwords.words('english')]
+                result = result.append({
+                    "index": row['index'],
+                    "Class": row['Class'],
+                    "Sentence": " ".join(filtered_sent[0:])
+                }, ignore_index=True)
+            return result;
+        else:
+            return data;
 
     def download(self):
         """Downloads the amazon reviews dataset from the internet and preprocess it."""
@@ -80,14 +84,11 @@ class AmazonReviews(datasets.VisionDataset):
         print('Processing...')
         
         train_data, test_data, train_targets, test_targets = self.read_csv(filename)
-        if self.vectorizer:
-            train_data = self.vectorizer(train_data)
-            test_data = self.vectorizer(test_data)
 
         # Converts array data into pytorch tensors
-        train_tensor  = torch.from_numpy(np.array(train_data)).type(torch.FloatTensor)
+        train_tensor  = self.vectorizer(train_data)
         train_targets = torch.from_numpy(np.array(train_targets)).long()
-        test_tensor   = torch.from_numpy(np.array(test_data)).type(torch.FloatTensor)
+        test_tensor   = self.vectorizer(test_data)
         test_targets  = torch.from_numpy(np.array(test_targets)).long()
         
         with open(os.path.join(self.processed_folder, self.training_file), 'wb') as f:
@@ -147,7 +148,7 @@ class TfidfTransform(TfidfVectorizer):
         else:
             data = self.word_vectorizer.transform(data)
         self.fit = False
-        return data.todense()
+        return torch.from_numpy(np.array(data.todense())).type(torch.FloatTensor)
 
 
 if __name__ == "__main__":
