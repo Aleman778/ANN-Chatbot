@@ -66,7 +66,6 @@ def chat():
         prediction = network(data)
         sentiment = "positive" if torch.argmax(prediction) == 1 else "negative"
         print("Text: {}\nPrediction: {}\nSentiment: {}\n".format(input, prediction, sentiment))
-        
 
 
 if __name__ == "__main__":

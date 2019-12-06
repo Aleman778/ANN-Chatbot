@@ -1,73 +1,65 @@
-from collections.abc import Iterable
+from matplotlib import figure
+from matplotlib import _pylab_helpers
 import matplotlib.pyplot as plt
 import time
 
-class DynamicPlot():
-    """Wrapper for the figure object that can be dynamically changed in realtime."""
 
-    def __init__(self, nrows, ncols, sharex, sharey, sleep):
-        plt.ion()
-        self.figure, axs = plt.subplots(nrows=nrows, ncols=ncols, sharex=sharex, sharey=sharey)
-        self.axes = []
-        self.sleep = sleep
+class DynamicFigure(Figure):
+    """Wrapper for matplotlib.figure Figure class for creating
+    dynamic plots that updates in realtime."""
+    def __str__():
+        return "Dynamic" + super().__str__()
 
-        if isinstance(axs, Iterable):
-            for ax in axs:
-                self.axes.append(DynamicAxis(ax))
-                ax.grid()
-        else:
-            self.axes.append(DynamicAxis(axs))
-            axs.grid()
+        def __init__(self,
+                     figsize=None,
+                     dpi=None,
+                     facecolor=None,
+                     edgecolor=None,
+                     linewidth=0.0,
+                     frameon=None,
+                     subplotpars=None,
+                     tight_layout=None,
+                     constrained_layout=None,
+                     sleep=0.05):
+            super().__init__(
+                     figsize=figsize,
+                     dpi=dpi,
+                     facecolor=facecolor,
+                     edgecolor=edgecolor,
+                     linewidth=linewidth,
+                     frameon=frameon,
+                     subplotpars=subplotpars,
+                     tight_layout=tight_layout,
+                     constrained_layout=constrained_layout)
 
-    def append(self, x, y, index=0):
-        self.axes[index].append(x, y)
-
-    def ax(self, index=0):
-        self.axes[index]
-
-    def update(self):
-        for ax in self.axes:
-            ax.update_lines()
-        self.figure.canvas.draw()
-        self.figure.canvas.flush_events()
-        time.sleep(self.sleep)
-
-class DynamicAxis():
-    """Wrapper for the axis class to provide data that can be easily changed."""
-    xdata = []
-    ydata = []
-
-    min_x = 0
-    min_y = 0
-    
-    max_x = 10
-    max_y = 10
-
-    def __init__(self, ax):
-        self.ax = ax
-        self.lines, = ax.plot([], []);
-        self.ax.set_xlim(self.min_x, self.max_x)
-        self.ax.set_ylim(self.min_y, self.max_y)
-
-    def set_autoscalex_on(enable):
-        self.ax.set_autoscalex_on(enable)
-
-    def set_autoscaley_on(enable):
-        self.ax.set_autoscaley_on(enable)
-
-    def update_lines(self):
-        self.lines.set_xdata(self.xdata)
-        self.lines.set_ydata(self.ydata)
-        self.ax.relim()
-        self.ax.autoscale_view()
-
-    def append(self, x, y):
-        self.xdata.append(x)
-        self.ydata.append(y)
+    def gca():
         
-
-def dyn_plot(nrows=1, ncols=1, sharex=False, sharey=False, sleep=0.05):
-    return DynamicPlot(nrows, ncols, sharex, sharey, sleep)
+            
     
+def gcdf():
+    figManager = _pylab_helpers.Gcf.get_active()
+    if figManager is not None:
+        return figManager.canvas.figure
+    else:
+        return dyn_figure()
 
-             
+def dyn_figure(num=None,
+               figsize=None,
+               dpi=None,
+               facecolor=None,
+               edgecolor=None,
+               frameon=True,
+               FigureClass=Figure,
+               clear=False,
+               **kwargs
+):
+    
+                     
+
+def plot(*args, scalex=True, scaley=True, data=None, **kwargs):
+    gca().plt.plot(*args, scalex=scalex, scaley=scaley, data=data, **kwargs);
+
+    
+def update():
+    
+    
