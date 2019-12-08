@@ -1,4 +1,3 @@
-import cbgamma.datasets as ds
 import matplotlib.pyplot as plt
 import transformers.optimization as optim
 import torch
@@ -57,7 +56,7 @@ class BertSentiment:
         transformer = BertTransform(62, pretrained_weights)
 
         # Setup the train loader
-        train_dataset = dataset('./', train=True, transforms=StandardTransform(ToTensor(), None), vectorizer=transformer, download=True)
+        train_dataset = dataset('./', train=True, vectorizer=transformer, download=True)
         self.train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 
         # Setup the validation loader
@@ -127,9 +126,3 @@ class BertSentiment:
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
         plt.show()
-            
-        
-
-if __name__ == "__main__":
-    bert = BertSentiment(ds.AmazonReviews);
-    bert.run(2)
