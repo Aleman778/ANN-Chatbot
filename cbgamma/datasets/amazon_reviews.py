@@ -8,7 +8,7 @@ from nltk.corpus import stopwords
 from torchvision import datasets, transforms
 from torchvision.datasets.utils import download_url, makedir_exist_ok
 from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
+from cbgamma.transforms import ToTfidf
 
 class AmazonReviews(datasets.VisionDataset):
     """Dataset containing amazon reviews with positive or negative output."""
@@ -43,9 +43,9 @@ class AmazonReviews(datasets.VisionDataset):
         data = self.data[index]
         target = self.targets[index]
         if self.transforms:
-            data = self.transforms(data)
-            target = self.transforms(target)
-        return data, target
+            return self.transforms(data, target)
+        else:
+            return data, target
         
 
     def preprocess_pandas(self, data, columns):
@@ -130,29 +130,8 @@ class AmazonReviews(datasets.VisionDataset):
             os.path.exists(os.path.join(self.processed_folder, self.test_file)))
 
 
-class TfidfTransform(TfidfVectorizer):
-    def __init__(self, analyzer='word', ngram_range=(1,2), max_features=50000, max_df=0.5, use_idf=True, norm='l2'):
-        self.word_vectorizer = TfidfVectorizer(
-            analyzer=analyzer,
-            ngram_range=ngram_range,
-            max_features=max_features,
-            max_df=max_df,
-            use_idf=use_idf,
-            norm=norm
-        )
-        self.fit = True
-
-    def __call__(self, data):
-        if self.fit:
-            data = self.word_vectorizer.fit_transform(data)
-        else:
-            data = self.word_vectorizer.transform(data)
-        self.fit = False
-        return torch.from_numpy(np.array(data.todense())).type(torch.FloatTensor)
-
-
 if __name__ == "__main__":
-    vectorizer = TfidfTransform()
+    vectorizer = ToTfidf()
     dataset = AmazonReviews('./', train=True, vectorizer=vectorizer, download=True)
     print(len(dataset))
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=10, shuffle=False);

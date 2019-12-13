@@ -1,3 +1,3 @@
-from .amazon_reviews import AmazonReviews, TfidfTransform
+from .amazon_reviews import AmazonReviews
 
-__all__ = ('AmazonReviews', 'TfidfTransform')
+__all__ = ['AmazonReviews']

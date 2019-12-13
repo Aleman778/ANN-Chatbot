@@ -4,8 +4,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 from transformers import BertTokenizer, BertForSequenceClassification, AdamW, get_linear_schedule_with_warmup
-from torchvision.transforms import ToTensor
-from torchvision.datasets.vision import StandardTransform
+from cbgamma.datasets import AmazonReviews
 
 # Include logging information.
 import logging
@@ -40,8 +39,12 @@ class BertTransform:
 
             # Appends the indexed tokens to the output tokens for entire dataset
             tokens.append(indexed_tokens)
-        return torch.tensor(tokens)
+        return tokens
 
+class DataToTensor:
+    def __call__(self, data, target):
+        return torch.tensor(data), target
+    
     
 class BertSentiment:
     """Bert Sentment class is used to train the BERT encoder model
@@ -50,17 +53,17 @@ class BertSentiment:
     def __init__(self, dataset, batch_size=32):
         """Creates a new model for sentiment analysis using BERT."""
         # The pretrained weights to use.
-        pretrained_weights = 'bert-large-uncased'
+        pretrained_weights = 'bert-base-uncased'
 
         # Create trainsformer to convert text to indexed tokens.
         transformer = BertTransform(62, pretrained_weights)
 
         # Setup the train loader
-        train_dataset = dataset('./', train=True, vectorizer=transformer, download=True)
+        train_dataset = dataset('./', train=True, transforms=DataToTensor(), vectorizer=transformer, download=True)
         self.train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 
         # Setup the validation loader
-        val_dataset = dataset('./', train=False, vectorizer=transformer, download=True)
+        val_dataset = dataset('./', train=False, transforms=DataToTensor(), vectorizer=transformer, download=True)
         self.val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
         # Retrive the CUDA device if available otherwise use CPU instead
@@ -99,7 +102,7 @@ class BertSentiment:
             train_loss += loss.item() / len(self.train_loader)
             print(
                 '\rEpoch {} [{}/{}] - Loss: {}'.format(
-                    epoch+1, batch_num+1, len(train_loader), loss
+                    epoch+1, batch_num+1, len(self.train_loader), loss
                 ),
                 end=''
             )
@@ -126,3 +129,7 @@ class BertSentiment:
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
         plt.show()
+
+if __name__ == "__main__":
+    bert = BertSentiment(AmazonReviews)
+    bert.run(2)

@@ -4,7 +4,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 from torch.utils.data import DataLoader
-from cbgamma import datasets
+from cbgamma.datasets import AmazonReviews
+from cbgamma.transforms import ToTfidf
     
 
 def train():
@@ -57,8 +58,7 @@ def chat():
     inputs = ["this product is good",
               "this product is awful",
               "super good",
-              "hate it but love it anyways",
-              "this is equal to Keanu Reeves acting"]
+              "hate it but love it anyways"]
     for input in inputs:
         data = train_dataset.vectorizer([input])
         data = torch.from_numpy(np.array(data)).type(torch.FloatTensor)
@@ -69,11 +69,11 @@ def chat():
 
 
 if __name__ == "__main__":
-    vectorizer = datasets.TfidfTransform()
-    train_dataset = datasets.AmazonReviews('./', train=True, vectorizer=vectorizer, download=True, stopwords=True)
+    vectorizer = ToTfidf()
+    train_dataset = AmazonReviews('./', train=True, vectorizer=vectorizer, download=True, stopwords=True)
     train_loader = DataLoader(train_dataset, batch_size=50, shuffle=False)
     
-    validation_dataset = datasets.AmazonReviews('./', train=False, vectorizer=vectorizer, download=True, stopwords=True)
+    validation_dataset = AmazonReviews('./', train=False, vectorizer=vectorizer, download=True, stopwords=True)
     validation_loader = DataLoader(validation_dataset, batch_size=50, shuffle=False)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
