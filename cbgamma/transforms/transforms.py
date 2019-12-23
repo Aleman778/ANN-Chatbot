@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-
+from transformers import BertTokenizer
 
 __all__ = ["ToTfidf", "BertTransform", "DataToTensor"]
 
